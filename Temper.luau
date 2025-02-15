@@ -1,6 +1,9 @@
+--!nonstrict
+
 -- [버텨라! 냥키혼] //템퍼//
 
---[[ // API //
+--[[ 
+		// API //
 
 	-- 타이머 카운팅에 함수를 바인딩하며, 경과 시간을 인수로 전달합니다.
 	BindCounting(CountCallBack: () -> (number))
@@ -22,10 +25,7 @@
 local Rep = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
-local Goodsignal = require(Rep.Goodsignal)
-
-type elapsedTime = number
-type countDownTime = number
+local Goodsignal = require(Rep.Goodsignal) -- 굿 시그널 경로
 
 export type TemperOptions = {
 	CountDown: boolean?,
@@ -37,23 +37,23 @@ Temper.__index = Temper
 
 function Temper.new(Option: TemperOptions)
 	local self = setmetatable({}, Temper)
-	
+
 	if Option then
 		self.CountDown = Option.CountDown or false
 		self.Duration = Option.Duration or 0
 		self.countDownTime = self.Duration
-		
+
 		self.CountDownCompleted = Goodsignal.new()
 	end
-	
+
 	self.TimerConnection = nil
 	self.running = false
 	self.elapsedTime = 0
-	
+
 	return self
 end
 
-function Temper:BindCounting(CountCallBack: () -> (elapsedTime | countDownTime))
+function Temper:BindCounting(CountCallBack: () -> (number))
 	self.CountCallBack = CountCallBack
 end
 
@@ -61,13 +61,13 @@ function Temper:Start()
 	if self.TimerConnection then
 		return
 	end
-	
+
 	self.running = true
-	
+
 	self.TimerConnection = RunService.RenderStepped:Connect(function(deltaTime: number)
 		if self.running then
 			self.elapsedTime = self.elapsedTime + deltaTime  -- 델타 타임을 더해 정확한 시간 측정
-			
+
 			if self.CountDown then
 				self.countDownTime = self.Duration - self.elapsedTime
 
@@ -76,7 +76,7 @@ function Temper:Start()
 					self:Stop()
 				end
 			end
-			
+
 			if self.CountCallBack then
 				if self.CountDown then
 					self.CountCallBack(math.abs(self.countDownTime))
